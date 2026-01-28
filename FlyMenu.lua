@@ -1,71 +1,77 @@
--- Fly + Noclip Menu | MOBILE FIXED | Delta
--- By Alkapone 🐐🔥
+-- Alkapone AScripts | Fly + Noclip | Delta | Mobile & PC
+-- Updated Version 🔥
 
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
-local LocalPlayer = Players.LocalPlayer
+local Player = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
 local flying = false
 local noclip = false
 local speed = 60
-local up = false
-local down = false
+local up, down = false, false
 local bv, bg
 
 local function getChar()
-	return LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+	return Player.Character or Player.CharacterAdded:Wait()
 end
 
 -- UI
-local gui = Instance.new("ScreenGui", game.CoreGui)
-gui.Name = "FlyMenu"
+local gui = Instance.new("ScreenGui")
+gui.Name = "AlkaponeAScripts"
 gui.ResetOnSpawn = false
+gui.Parent = game.CoreGui
 
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 240, 0, 320)
+frame.Size = UDim2.new(0, 250, 0, 330)
 frame.Position = UDim2.new(0.05, 0, 0.25, 0)
-frame.BorderSizePixel = 0
+frame.BackgroundColor3 = Color3.fromRGB(180, 220, 255) -- azul claro
+frame.BorderSizePixel = 2
+frame.BorderColor3 = Color3.fromRGB(255,255,255)
 frame.Active = true
 frame.Draggable = true
 
 local corner = Instance.new("UICorner", frame)
 corner.CornerRadius = UDim.new(0, 18)
 
-local grad = Instance.new("UIGradient", frame)
-grad.Color = ColorSequence.new{
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(60,0,120)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(0,170,255))
-}
-
+-- Title
 local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.new(1,0,0,45)
+title.Size = UDim2.new(1,0,0,50)
 title.BackgroundTransparency = 1
-title.Text = "🪽 FLY MENU"
-title.TextColor3 = Color3.new(1,1,1)
-title.Font = Enum.Font.GothamBold
+title.Text = "Alkapone A𝓢cripts"
+title.Font = Enum.Font.GothamBlack
 title.TextSize = 22
+title.TextColor3 = Color3.fromRGB(20,60,120)
 
+-- Divider
+local line = Instance.new("Frame", frame)
+line.Size = UDim2.new(0.9,0,0,2)
+line.Position = UDim2.new(0.05,0,0,50)
+line.BackgroundColor3 = Color3.fromRGB(255,255,255)
+line.BorderSizePixel = 0
+
+-- Button creator
 local function btn(text,y,color)
 	local b = Instance.new("TextButton", frame)
-	b.Size = UDim2.new(0.85,0,0,40)
+	b.Size = UDim2.new(0.85,0,0,42)
 	b.Position = UDim2.new(0.075,0,0,y)
 	b.Text = text
 	b.Font = Enum.Font.GothamBold
 	b.TextSize = 15
 	b.TextColor3 = Color3.new(1,1,1)
 	b.BackgroundColor3 = color
+	b.AutoButtonColor = true
 	local c = Instance.new("UICorner", b)
-	c.CornerRadius = UDim.new(0,12)
+	c.CornerRadius = UDim.new(0, 14)
 	return b
 end
 
-local flyBtn = btn("FLY : OFF", 55, Color3.fromRGB(0,200,255))
-local noclipBtn = btn("NOCLIP : OFF", 100, Color3.fromRGB(255,80,80))
-local upBtn = btn("▲ SUBIR", 145, Color3.fromRGB(120,255,120))
-local downBtn = btn("▼ BAJAR", 190, Color3.fromRGB(255,180,120))
-local speedBtn = btn("SPEED +", 235, Color3.fromRGB(180,120,255))
+local flyBtn    = btn("🪽 FLY : OFF", 70,  Color3.fromRGB(0,140,255))
+local noclipBtn = btn("🧱 NOCLIP : OFF", 120, Color3.fromRGB(255,80,80))
+local upBtn     = btn("▲ SUBIR", 170, Color3.fromRGB(100,220,140))
+local downBtn   = btn("▼ BAJAR", 220, Color3.fromRGB(255,180,120))
+local speedBtn  = btn("⚡ SPEED +", 270, Color3.fromRGB(140,120,255))
 
 -- FLY
 local function startFly()
@@ -107,14 +113,15 @@ end)
 -- BUTTONS
 flyBtn.MouseButton1Click:Connect(function()
 	flying = not flying
-	flyBtn.Text = flying and "FLY : ON" or "FLY : OFF"
+	flyBtn.Text = flying and "🪽 FLY : ON" or "🪽 FLY : OFF"
 	if flying then startFly() else stopFly() end
 end)
 
 noclipBtn.MouseButton1Click:Connect(function()
 	noclip = not noclip
-	noclipBtn.Text = noclip and "NOCLIP : ON" or "NOCLIP : OFF"
+	noclipBtn.Text = noclip and "🧱 NOCLIP : ON" or "🧱 NOCLIP : OFF"
 end)
+
 
 upBtn.MouseButton1Down:Connect(function() up = true end)
 upBtn.MouseButton1Up:Connect(function() up = false end)
