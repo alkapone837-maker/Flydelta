@@ -1,90 +1,102 @@
--- Fly + Noclip Menu | Delta | Mobile Compatible
+-- Fly + Noclip Menu | MOBILE FIXED | Delta
+-- By Alkapone 🐐🔥
 
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
-
-local player = Players.LocalPlayer
-local char = player.Character or player.CharacterAdded:Wait()
-local hrp = char:WaitForChild("HumanoidRootPart")
-local hum = char:WaitForChild("Humanoid")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
 
 local flying = false
 local noclip = false
 local speed = 60
+local up = false
+local down = false
 local bv, bg
 
--- GUI
-local gui = Instance.new("ScreenGui")
-gui.Name = "FlyNoclipMenu"
-gui.Parent = game.CoreGui
+local function getChar()
+	return LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+end
+
+-- UI
+local gui = Instance.new("ScreenGui", game.CoreGui)
+gui.Name = "FlyMenu"
+gui.ResetOnSpawn = false
 
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0,220,0,180)
-frame.Position = UDim2.new(0,20,0,200)
-frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+frame.Size = UDim2.new(0, 240, 0, 320)
+frame.Position = UDim2.new(0.05, 0, 0.25, 0)
+frame.BorderSizePixel = 0
 frame.Active = true
 frame.Draggable = true
 
+local corner = Instance.new("UICorner", frame)
+corner.CornerRadius = UDim.new(0, 18)
+
+local grad = Instance.new("UIGradient", frame)
+grad.Color = ColorSequence.new{
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(60,0,120)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(0,170,255))
+}
+
 local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.new(1,0,0,30)
-title.Text = "FLY HUB"
-title.TextColor3 = Color3.new(1,1,1)
+title.Size = UDim2.new(1,0,0,45)
 title.BackgroundTransparency = 1
+title.Text = "🪽 FLY MENU"
+title.TextColor3 = Color3.new(1,1,1)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 22
 
-local flyBtn = Instance.new("TextButton", frame)
-flyBtn.Size = UDim2.new(1,-20,0,40)
-flyBtn.Position = UDim2.new(0,10,0,40)
-flyBtn.Text = "FLY : OFF"
-flyBtn.TextColor3 = Color3.new(1,1,1)
-flyBtn.BackgroundColor3 = Color3.fromRGB(45,45,45)
+local function btn(text,y,color)
+	local b = Instance.new("TextButton", frame)
+	b.Size = UDim2.new(0.85,0,0,40)
+	b.Position = UDim2.new(0.075,0,0,y)
+	b.Text = text
+	b.Font = Enum.Font.GothamBold
+	b.TextSize = 15
+	b.TextColor3 = Color3.new(1,1,1)
+	b.BackgroundColor3 = color
+	local c = Instance.new("UICorner", b)
+	c.CornerRadius = UDim.new(0,12)
+	return b
+end
 
-local noclipBtn = Instance.new("TextButton", frame)
-noclipBtn.Size = UDim2.new(1,-20,0,40)
-noclipBtn.Position = UDim2.new(0,10,0,90)
-noclipBtn.Text = "NOCLIP : OFF"
-noclipBtn.TextColor3 = Color3.new(1,1,1)
-noclipBtn.BackgroundColor3 = Color3.fromRGB(45,45,45)
+local flyBtn = btn("FLY : OFF", 55, Color3.fromRGB(0,200,255))
+local noclipBtn = btn("NOCLIP : OFF", 100, Color3.fromRGB(255,80,80))
+local upBtn = btn("▲ SUBIR", 145, Color3.fromRGB(120,255,120))
+local downBtn = btn("▼ BAJAR", 190, Color3.fromRGB(255,180,120))
+local speedBtn = btn("SPEED +", 235, Color3.fromRGB(180,120,255))
 
-local mobileBtn = Instance.new("TextButton", gui)
-mobileBtn.Size = UDim2.new(0,60,0,60)
-mobileBtn.Position = UDim2.new(0.85,0,0.7,0)
-mobileBtn.Text = "MENU"
-mobileBtn.BackgroundColor3 = Color3.fromRGB(30,30,30)
-mobileBtn.TextColor3 = Color3.new(1,1,1)
-mobileBtn.Visible = UIS.TouchEnabled
+-- FLY
+local function startFly()
+	local hrp = getChar():WaitForChild("HumanoidRootPart")
 
-mobileBtn.MouseButton1Click:Connect(function()
-	frame.Visible = not frame.Visible
-end)
+	bv = Instance.new("BodyVelocity", hrp)
+	bv.MaxForce = Vector3.new(1e9,1e9,1e9)
 
-flyBtn.MouseButton1Click:Connect(function()
-	flying = not flying
-	flyBtn.Text = flying and "FLY : ON" or "FLY : OFF"
+	bg = Instance.new("BodyGyro", hrp)
+	bg.MaxTorque = Vector3.new(1e9,1e9,1e9)
 
-	if flying then
-		bv = Instance.new("BodyVelocity", hrp)
-		bv.MaxForce = Vector3.new(9e9,9e9,9e9)
+	RunService.RenderStepped:Connect(function()
+		if flying then
+			local dir = Camera.CFrame.LookVector
+			if up then dir += Vector3.new(0,1,0) end
+			if down then dir -= Vector3.new(0,1,0) end
+			bv.Velocity = dir * speed
+			bg.CFrame = Camera.CFrame
+		end
+	end)
+end
 
-		bg = Instance.new("BodyGyro", hrp)
-		bg.MaxTorque = Vector3.new(9e9,9e9,9e9)
+local function stopFly()
+	if bv then bv:Destroy() bv=nil end
+	if bg then bg:Destroy() bg=nil end
+end
 
-		hum.PlatformStand = true
-	else
-		if bv then bv:Destroy() end
-		if bg then bg:Destroy() end
-		hum.PlatformStand = false
-	end
-end)
-
-noclipBtn.MouseButton1Click:Connect(function()
-	noclip = not noclip
-	noclipBtn.Text = noclip and "NOCLIP : ON" or "NOCLIP : OFF"
-end)
-
+-- NOCLIP
 RunService.Stepped:Connect(function()
 	if noclip then
-		for _,v in pairs(char:GetDescendants()) do
+		for _,v in pairs(getChar():GetDescendants()) do
 			if v:IsA("BasePart") then
 				v.CanCollide = false
 			end
@@ -92,19 +104,24 @@ RunService.Stepped:Connect(function()
 	end
 end)
 
-RunService.RenderStepped:Connect(function()
-	if flying and bv and bg then
-		local cam = workspace.CurrentCamera
-		local dir = Vector3.zero
+-- BUTTONS
+flyBtn.MouseButton1Click:Connect(function()
+	flying = not flying
+	flyBtn.Text = flying and "FLY : ON" or "FLY : OFF"
+	if flying then startFly() else stopFly() end
+end)
 
-		if UIS:IsKeyDown(Enum.KeyCode.W) then dir += cam.CFrame.LookVector end
-		if UIS:IsKeyDown(Enum.KeyCode.S) then dir -= cam.CFrame.LookVector end
-		if UIS:IsKeyDown(Enum.KeyCode.A) then dir -= cam.CFrame.RightVector end
-		if UIS:IsKeyDown(Enum.KeyCode.D) then dir += cam.CFrame.RightVector end
-		if UIS:IsKeyDown(Enum.KeyCode.Space) then dir += cam.CFrame.UpVector end
-		if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then dir -= cam.CFrame.UpVector end
+noclipBtn.MouseButton1Click:Connect(function()
+	noclip = not noclip
+	noclipBtn.Text = noclip and "NOCLIP : ON" or "NOCLIP : OFF"
+end)
 
-		bv.Velocity = dir * speed
-		bg.CFrame = cam.CFrame
-	end
+upBtn.MouseButton1Down:Connect(function() up = true end)
+upBtn.MouseButton1Up:Connect(function() up = false end)
+
+downBtn.MouseButton1Down:Connect(function() down = true end)
+downBtn.MouseButton1Up:Connect(function() down = false end)
+
+speedBtn.MouseButton1Click:Connect(function()
+	speed += 10
 end)
