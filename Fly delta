@@ -1,4 +1,4 @@
--- Fly + Noclip Menu | Mobile & PC | Delta Compatible
+-- Alkapone Universal Fly + Noclip + Speed | Delta Compatible
 -- By Alkapone 🐐
 
 local Players = game:GetService("Players")
@@ -7,86 +7,88 @@ local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
--- VARIABLES
+-- Variables
 local flying = false
 local noclip = false
 local speed = 60
+local up, down = false, false
 local bv, bg
 
--- CHARACTER
+-- Esperar personaje
 local function getChar()
-	return LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+	local char = LocalPlayer.Character
+	while not char or not char:FindFirstChild("HumanoidRootPart") or not char:FindFirstChild("Humanoid") do
+		char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+		task.wait(0.1)
+	end
+	return char
 end
 
 -- UI
-local gui = Instance.new("ScreenGui")
-gui.Name = "FlyMenu"
+local gui = Instance.new("ScreenGui", game.CoreGui)
+gui.Name = "AlkaponeUniversal"
 gui.ResetOnSpawn = false
-gui.Parent = game.CoreGui
 
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 230, 0, 260)
-frame.Position = UDim2.new(0.05, 0, 0.3, 0)
-frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
-frame.BorderSizePixel = 0
+frame.Size = UDim2.new(0, 260, 0, 320)
+frame.Position = UDim2.new(0.05, 0, 0.25, 0)
+frame.BackgroundColor3 = Color3.fromRGB(180, 220, 255)
+frame.BorderColor3 = Color3.fromRGB(255, 255, 255)
+frame.BorderSizePixel = 2
 frame.Active = true
 frame.Draggable = true
 
-local corner = Instance.new("UICorner", frame)
-corner.CornerRadius = UDim.new(0, 16)
-
 local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.new(1, 0, 0, 45)
+title.Size = UDim2.new(1,0,0,50)
 title.BackgroundTransparency = 1
-title.Text = "🪽 Fly Menu"
-title.TextColor3 = Color3.fromRGB(0,255,180)
+title.Text = "Alkapone Universal"
+title.TextColor3 = Color3.fromRGB(0,50,120)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 22
 
--- BUTTON CREATOR
-local function createButton(text, posY, color)
-	local btn = Instance.new("TextButton", frame)
-	btn.Size = UDim2.new(0.85, 0, 0, 42)
-	btn.Position = UDim2.new(0.075, 0, 0, posY)
-	btn.BackgroundColor3 = color
-	btn.Text = text
-	btn.TextColor3 = Color3.new(1,1,1)
-	btn.Font = Enum.Font.GothamBold
-	btn.TextSize = 16
-	btn.AutoButtonColor = true
-	local c = Instance.new("UICorner", btn)
-	c.CornerRadius = UDim.new(0, 12)
-	return btn
+-- Botón helper
+local function btn(text, y, color)
+	local b = Instance.new("TextButton", frame)
+	b.Size = UDim2.new(0.85,0,0,42)
+	b.Position = UDim2.new(0.075,0,0,y)
+	b.BackgroundColor3 = color
+	b.Text = text
+	b.TextColor3 = Color3.fromRGB(255,255,255)
+	b.Font = Enum.Font.GothamBold
+	b.TextSize = 16
+	local c = Instance.new("UICorner", b)
+	c.CornerRadius = UDim.new(0,12)
+	return b
 end
 
-local flyBtn = createButton("FLY : OFF", 55, Color3.fromRGB(0,170,255))
-local noclipBtn = createButton("NOCLIP : OFF", 105, Color3.fromRGB(255,90,90))
-local speedUp = createButton("SPEED +", 155, Color3.fromRGB(120,200,120))
-local speedDown = createButton("SPEED -", 205, Color3.fromRGB(200,120,120))
+-- Botones
+local flyBtn = btn("🪽 FLY : OFF", 60, Color3.fromRGB(0,140,255))
+local noclipBtn = btn("🧱 NOCLIP : OFF", 115, Color3.fromRGB(255,80,80))
+local upBtn = btn("▲ SUBIR", 170, Color3.fromRGB(120,255,140))
+local downBtn = btn("▼ BAJAR", 225, Color3.fromRGB(255,180,120))
+local speedUpBtn = btn("⚡ SPEED +", 280, Color3.fromRGB(140,120,255))
 
--- FLY FUNCTIONS
+-- FLY funciones
 local function startFly()
 	local char = getChar()
 	local hrp = char:WaitForChild("HumanoidRootPart")
 
-	bv = Instance.new("BodyVelocity")
+	bv = Instance.new("BodyVelocity", hrp)
 	bv.MaxForce = Vector3.new(1e9,1e9,1e9)
 	bv.Velocity = Vector3.zero
-	bv.Parent = hrp
 
-	bg = Instance.new("BodyGyro")
+	bg = Instance.new("BodyGyro", hrp)
 	bg.MaxTorque = Vector3.new(1e9,1e9,1e9)
 	bg.CFrame = hrp.CFrame
-	bg.Parent = hrp
 
 	RunService.RenderStepped:Connect(function()
 		if flying and bv and bg then
 			local dir = Vector3.zero
 			if UIS.TouchEnabled then
-				-- MOBILE: vuela hacia donde miras
+				-- Móvil: vuela hacia donde miras
 				dir = Camera.CFrame.LookVector
 			else
-				-- PC
+				-- PC: teclas WSAD + SPACE/CTRL
 				if UIS:IsKeyDown(Enum.KeyCode.W) then dir += Camera.CFrame.LookVector end
 				if UIS:IsKeyDown(Enum.KeyCode.S) then dir -= Camera.CFrame.LookVector end
 				if UIS:IsKeyDown(Enum.KeyCode.A) then dir -= Camera.CFrame.RightVector end
@@ -94,6 +96,8 @@ local function startFly()
 				if UIS:IsKeyDown(Enum.KeyCode.Space) then dir += Camera.CFrame.UpVector end
 				if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then dir -= Camera.CFrame.UpVector end
 			end
+			if up then dir += Vector3.new(0,1,0) end
+			if down then dir -= Vector3.new(0,1,0) end
 			bv.Velocity = dir * speed
 			bg.CFrame = Camera.CFrame
 		end
@@ -105,10 +109,11 @@ local function stopFly()
 	if bg then bg:Destroy() bg = nil end
 end
 
--- NOCLIP LOOP
+-- NOCLIP loop
 RunService.Stepped:Connect(function()
 	if noclip then
-		for _,v in pairs(getChar():GetDescendants()) do
+		local char = getChar()
+		for _,v in pairs(char:GetDescendants()) do
 			if v:IsA("BasePart") then
 				v.CanCollide = false
 			end
@@ -116,26 +121,26 @@ RunService.Stepped:Connect(function()
 	end
 end)
 
--- BUTTON EVENTS
+-- Botones eventos
 flyBtn.MouseButton1Click:Connect(function()
 	flying = not flying
-	flyBtn.Text = flying and "FLY : ON" or "FLY : OFF"
-	if flying then
-		startFly()
-	else
-		stopFly()
-	end
+	flyBtn.Text = flying and "🪽 FLY : ON" or "🪽 FLY : OFF"
+	if flying then startFly() else stopFly() end
 end)
 
 noclipBtn.MouseButton1Click:Connect(function()
 	noclip = not noclip
-	noclipBtn.Text = noclip and "NOCLIP : ON" or "NOCLIP : OFF"
+	noclipBtn.Text = noclip and "🧱 NOCLIP : ON" or "🧱 NOCLIP : OFF"
 end)
 
-speedUp.MouseButton1Click:Connect(function()
+upBtn.MouseButton1Down:Connect(function() up = true end)
+upBtn.MouseButton1Up:Connect(function() up = false end)
+
+downBtn.MouseButton1Down:Connect(function() down = true end)
+downBtn.MouseButton1Up:Connect(function() down = false end)
+
+speedUpBtn.MouseButton1Click:Connect(function()
 	speed += 10
 end)
 
-speedDown.MouseButton1Click:Connect(function()
-	speed = math.max(10, speed - 10)
-end)
+print("Alkapone Universal cargado correctamente ✅")
