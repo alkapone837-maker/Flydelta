@@ -1,5 +1,5 @@
 -- Alkapone Universal Fly + Noclip + Speed | Delta Compatible
--- By Alkapone 🐐
+-- Funciona en PC y Móvil
 
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
@@ -7,18 +7,17 @@ local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
--- Variables
 local flying = false
 local noclip = false
 local speed = 60
 local up, down = false, false
 local bv, bg
+local flyConnection
+local noclipConnection
 
--- Esperar personaje
 local function getChar()
-	local char = LocalPlayer.Character
-	while not char or not char:FindFirstChild("HumanoidRootPart") or not char:FindFirstChild("Humanoid") do
-		char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+	local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+	while not char:FindFirstChild("HumanoidRootPart") do
 		task.wait(0.1)
 	end
 	return char
@@ -46,7 +45,6 @@ title.TextColor3 = Color3.fromRGB(0,50,120)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 22
 
--- Botón helper
 local function btn(text, y, color)
 	local b = Instance.new("TextButton", frame)
 	b.Size = UDim2.new(0.85,0,0,42)
@@ -61,7 +59,6 @@ local function btn(text, y, color)
 	return b
 end
 
--- Botones
 local flyBtn = btn("🪽 FLY : OFF", 60, Color3.fromRGB(0,140,255))
 local noclipBtn = btn("🧱 NOCLIP : OFF", 115, Color3.fromRGB(255,80,80))
 local upBtn = btn("▲ SUBIR", 170, Color3.fromRGB(120,255,140))
@@ -73,28 +70,32 @@ local function startFly()
 	local char = getChar()
 	local hrp = char:WaitForChild("HumanoidRootPart")
 
-	bv = Instance.new("BodyVelocity", hrp)
+	if bv then bv:Destroy() end
+	if bg then bg:Destroy() end
+
+	bv = Instance.new("BodyVelocity")
 	bv.MaxForce = Vector3.new(1e9,1e9,1e9)
 	bv.Velocity = Vector3.zero
+	bv.Parent = hrp
 
-	bg = Instance.new("BodyGyro", hrp)
+	bg = Instance.new("BodyGyro")
 	bg.MaxTorque = Vector3.new(1e9,1e9,1e9)
 	bg.CFrame = hrp.CFrame
+	bg.Parent = hrp
 
-	RunService.RenderStepped:Connect(function()
+	if flyConnection then flyConnection:Disconnect() end
+	flyConnection = RunService.RenderStepped:Connect(function()
 		if flying and bv and bg then
 			local dir = Vector3.zero
 			if UIS.TouchEnabled then
-				-- Móvil: vuela hacia donde miras
 				dir = Camera.CFrame.LookVector
 			else
-				-- PC: teclas WSAD + SPACE/CTRL
 				if UIS:IsKeyDown(Enum.KeyCode.W) then dir += Camera.CFrame.LookVector end
 				if UIS:IsKeyDown(Enum.KeyCode.S) then dir -= Camera.CFrame.LookVector end
 				if UIS:IsKeyDown(Enum.KeyCode.A) then dir -= Camera.CFrame.RightVector end
 				if UIS:IsKeyDown(Enum.KeyCode.D) then dir += Camera.CFrame.RightVector end
-				if UIS:IsKeyDown(Enum.KeyCode.Space) then dir += Camera.CFrame.UpVector end
-				if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then dir -= Camera.CFrame.UpVector end
+				if UIS:IsKeyDown(Enum.KeyCode.Space) then dir += Vector3.new(0,1,0) end
+				if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then dir -= Vector3.new(0,1,0) end
 			end
 			if up then dir += Vector3.new(0,1,0) end
 			if down then dir -= Vector3.new(0,1,0) end
@@ -105,12 +106,14 @@ local function startFly()
 end
 
 local function stopFly()
-	if bv then bv:Destroy() bv = nil end
-	if bg then bg:Destroy() bg = nil end
+	if bv then bv:Destroy() bv=nil end
+	if bg then bg:Destroy() bg=nil end
+	if flyConnection then flyConnection:Disconnect() flyConnection=nil end
 end
 
--- NOCLIP loop
-RunService.Stepped:Connect(function()
+-- NOCLIP
+if noclipConnection then noclipConnection:Disconnect() end
+noclipConnection = RunService.Stepped:Connect(function()
 	if noclip then
 		local char = getChar()
 		for _,v in pairs(char:GetDescendants()) do
@@ -121,7 +124,7 @@ RunService.Stepped:Connect(function()
 	end
 end)
 
--- Botones eventos
+-- BOTONES
 flyBtn.MouseButton1Click:Connect(function()
 	flying = not flying
 	flyBtn.Text = flying and "🪽 FLY : ON" or "🪽 FLY : OFF"
@@ -133,11 +136,11 @@ noclipBtn.MouseButton1Click:Connect(function()
 	noclipBtn.Text = noclip and "🧱 NOCLIP : ON" or "🧱 NOCLIP : OFF"
 end)
 
-upBtn.MouseButton1Down:Connect(function() up = true end)
-upBtn.MouseButton1Up:Connect(function() up = false end)
+upBtn.MouseButton1Down:Connect(function() up=true end)
+upBtn.MouseButton1Up:Connect(function() up=false end)
 
-downBtn.MouseButton1Down:Connect(function() down = true end)
-downBtn.MouseButton1Up:Connect(function() down = false end)
+downBtn.MouseButton1Down:Connect(function() down=true end)
+downBtn.MouseButton1Up:Connect(function() down=false end)
 
 speedUpBtn.MouseButton1Click:Connect(function()
 	speed += 10
