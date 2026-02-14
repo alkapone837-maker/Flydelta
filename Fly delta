@@ -1,180 +1,227 @@
--- Alkapone Universal V2 | Fly + Noclip + Speed + JumpBoost
--- By Alkapone 🐐
--- Compatible Delta / PC / Mobile
+--// ZL HUB V3 | Universal
+--// Key System + Fly + Noclip + Speed + Aura
+--// By ChatGPT
 
+--------------------
+-- CONFIG
+--------------------
+local REQUIRED_KEY = "ZL-V3-ACCESS"
+
+--------------------
+-- SERVICES
+--------------------
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
-local LocalPlayer = Players.LocalPlayer
-local Camera = workspace.CurrentCamera
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local root = character:WaitForChild("HumanoidRootPart")
 
--- Variables
-local flying = false
+--------------------
+-- KEY SYSTEM UI
+--------------------
+local KeyGui = Instance.new("ScreenGui", game.CoreGui)
+KeyGui.Name = "KeySystem"
+
+local KeyFrame = Instance.new("Frame", KeyGui)
+KeyFrame.Size = UDim2.new(0,300,0,150)
+KeyFrame.Position = UDim2.new(0.5,-150,0.5,-75)
+KeyFrame.BackgroundColor3 = Color3.fromRGB(25,25,35)
+KeyFrame.BorderSizePixel = 0
+KeyFrame.Active = true
+KeyFrame.Draggable = true
+
+local KeyCorner = Instance.new("UICorner", KeyFrame)
+KeyCorner.CornerRadius = UDim.new(0,14)
+
+local KeyTitle = Instance.new("TextLabel", KeyFrame)
+KeyTitle.Size = UDim2.new(1,0,0,40)
+KeyTitle.Text = "ZL HUB V3 - KEY"
+KeyTitle.TextColor3 = Color3.fromRGB(255,120,200)
+KeyTitle.BackgroundTransparency = 1
+KeyTitle.Font = Enum.Font.GothamBold
+KeyTitle.TextSize = 18
+
+local KeyBox = Instance.new("TextBox", KeyFrame)
+KeyBox.PlaceholderText = "Ingresa la key"
+KeyBox.Size = UDim2.new(0.85,0,0,35)
+KeyBox.Position = UDim2.new(0.075,0,0.4,0)
+KeyBox.BackgroundColor3 = Color3.fromRGB(40,40,60)
+KeyBox.TextColor3 = Color3.new(1,1,1)
+KeyBox.Font = Enum.Font.Gotham
+KeyBox.TextSize = 14
+KeyBox.ClearTextOnFocus = false
+
+Instance.new("UICorner", KeyBox)
+
+local KeyBtn = Instance.new("TextButton", KeyFrame)
+KeyBtn.Text = "VALIDAR"
+KeyBtn.Size = UDim2.new(0.5,0,0,35)
+KeyBtn.Position = UDim2.new(0.25,0,0.7,0)
+KeyBtn.BackgroundColor3 = Color3.fromRGB(255,120,200)
+KeyBtn.TextColor3 = Color3.new(0,0,0)
+KeyBtn.Font = Enum.Font.GothamBold
+KeyBtn.TextSize = 14
+
+Instance.new("UICorner", KeyBtn)
+
+--------------------
+-- MAIN HUB UI
+--------------------
+local HubGui = Instance.new("ScreenGui", game.CoreGui)
+HubGui.Enabled = false
+HubGui.Name = "ZLHubV3"
+
+local Main = Instance.new("Frame", HubGui)
+Main.Size = UDim2.new(0,380,0,330)
+Main.Position = UDim2.new(0.5,-190,0.5,-165)
+Main.BackgroundColor3 = Color3.fromRGB(30,30,45)
+Main.BorderSizePixel = 0
+Main.Active = true
+Main.Draggable = true
+
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0,16)
+
+local Title = Instance.new("TextLabel", Main)
+Title.Text = "victoria mi único amor"
+Title.Size = UDim2.new(1,0,0,45)
+Title.BackgroundTransparency = 1
+Title.TextColor3 = Color3.fromRGB(255,150,220)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 20
+
+--------------------
+-- FLOAT BUTTON
+--------------------
+local ToggleBtn = Instance.new("TextButton", HubGui)
+ToggleBtn.Size = UDim2.new(0,50,0,50)
+ToggleBtn.Position = UDim2.new(0.05,0,0.5,0)
+ToggleBtn.Text = "ZL"
+ToggleBtn.Font = Enum.Font.GothamBold
+ToggleBtn.TextSize = 16
+ToggleBtn.TextColor3 = Color3.new(0,0,0)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(255,120,200)
+ToggleBtn.Active = true
+ToggleBtn.Draggable = true
+
+Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(1,0)
+
+ToggleBtn.MouseButton1Click:Connect(function()
+	Main.Visible = not Main.Visible
+end)
+
+--------------------
+-- VARIABLES
+--------------------
+local fly = false
 local noclip = false
-local speed = 60
-local jumpBoost = 100
-local up, down = false, false
-local bv, bg
-local flyConnection
-local noclipConnection
+local speedOn = false
+local flyBV, flyBG
 
--- Función para obtener personaje
-local function getChar()
-	local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-	while not char:FindFirstChild("HumanoidRootPart") do task.wait(0.1) end
-	return char
+--------------------
+-- FUNCTIONS
+--------------------
+local function createButton(text, posY)
+	local btn = Instance.new("TextButton", Main)
+	btn.Size = UDim2.new(0.85,0,0,40)
+	btn.Position = UDim2.new(0.075,0,0,posY)
+	btn.Text = text
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 14
+	btn.TextColor3 = Color3.new(0,0,0)
+	btn.BackgroundColor3 = Color3.fromRGB(255,170,220)
+	Instance.new("UICorner", btn)
+	return btn
 end
 
--- UI
-local gui = Instance.new("ScreenGui", game.CoreGui)
-gui.Name = "AlkaponeUniversalV2"
-gui.ResetOnSpawn = false
+--------------------
+-- SPEED
+--------------------
+local SpeedBtn = createButton("Speed ON / OFF", 60)
+SpeedBtn.MouseButton1Click:Connect(function()
+	speedOn = not speedOn
+	humanoid.WalkSpeed = speedOn and 40 or 16
+end)
 
-local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 280, 0, 380)
-frame.Position = UDim2.new(0.05,0,0.2,0)
-frame.BackgroundColor3 = Color3.fromRGB(180,220,255)
-frame.BorderColor3 = Color3.fromRGB(255,255,255)
-frame.BorderSizePixel = 2
-frame.Active = true
-frame.Draggable = true
+--------------------
+-- FLY
+--------------------
+local FlyBtn = createButton("Fly ON / OFF", 110)
 
--- Fondo opcional
-local bgImg = Instance.new("ImageLabel", frame)
-bgImg.Size = UDim2.new(1,0,1,0)
-bgImg.Position = UDim2.new(0,0,0,0)
-bgImg.BackgroundTransparency = 1
-bgImg.Image = "rbxassetid://157365444" -- Cambia por tu ID de Il Nene de Oro
-bgImg.ScaleType = Enum.ScaleType.Crop
-
--- Contenedor semi-transparente
-local container = Instance.new("Frame", frame)
-container.Size = UDim2.new(1,0,1,0)
-container.BackgroundColor3 = Color3.fromRGB(20,20,20)
-container.BackgroundTransparency = 0.3
-container.BorderSizePixel = 0
-
--- Título
-local title = Instance.new("TextLabel", container)
-title.Size = UDim2.new(1,0,0,50)
-title.BackgroundTransparency = 1
-title.Text = "Alkapone Universal V2"
-title.TextColor3 = Color3.fromRGB(0,50,120)
-title.Font = Enum.Font.GothamBold
-title.TextSize = 24
-
--- Función de sección
-local function sectionTitle(text, y)
-	local lbl = Instance.new("TextLabel", container)
-	lbl.Size = UDim2.new(1,0,0,30)
-	lbl.Position = UDim2.new(0,0,0,y)
-	lbl.BackgroundTransparency = 1
-	lbl.Text = text
-	lbl.TextColor3 = Color3.fromRGB(255,200,0)
-	lbl.Font = Enum.Font.GothamBold
-	lbl.TextSize = 18
-	return lbl
-end
-
-sectionTitle("1. FLY", 60)
-sectionTitle("2. NOCLIP", 140)
-sectionTitle("3. JUMP BOOST", 210)
-
--- Función botón
-local function btn(text, y, color)
-	local b = Instance.new("TextButton", container)
-	b.Size = UDim2.new(0.85,0,0,40)
-	b.Position = UDim2.new(0.075,0,0,y)
-	b.BackgroundColor3 = color
-	b.Text = text
-	b.TextColor3 = Color3.fromRGB(255,255,255)
-	b.Font = Enum.Font.GothamBold
-	b.TextSize = 16
-	local c = Instance.new("UICorner", b)
-	c.CornerRadius = UDim.new(0,12)
-	return b
-end
-
--- Botones
-local flyBtn = btn("🪽 FLY : OFF", 90, Color3.fromRGB(0,140,255))
-local noclipBtn = btn("🧱 NOCLIP : OFF", 170, Color3.fromRGB(255,80,80))
-local upBtn = btn("▲ SUBIR", 200, Color3.fromRGB(120,255,140))
-local downBtn = btn("▼ BAJAR", 240, Color3.fromRGB(255,180,120))
-local speedUpBtn = btn("⚡ SPEED +", 280, Color3.fromRGB(140,120,255))
-local jumpBtn = btn("⬆ JUMP BOOST", 320, Color3.fromRGB(255,255,80))
-
--- Funciones Fly
 local function startFly()
-	local char = getChar()
-	local hrp = char:WaitForChild("HumanoidRootPart")
-	if bv then bv:Destroy() end
-	if bg then bg:Destroy() end
-	bv = Instance.new("BodyVelocity", hrp)
-	bv.MaxForce = Vector3.new(1e9,1e9,1e9)
-	bv.Velocity = Vector3.zero
-	bg = Instance.new("BodyGyro", hrp)
-	bg.MaxTorque = Vector3.new(1e9,1e9,1e9)
-	bg.CFrame = hrp.CFrame
-	if flyConnection then flyConnection:Disconnect() end
-	flyConnection = RunService.RenderStepped:Connect(function()
-		if flying then
-			local dir = Vector3.zero
-			if UIS.TouchEnabled then dir = Camera.CFrame.LookVector end
-			if UIS:IsKeyDown(Enum.KeyCode.W) then dir += Camera.CFrame.LookVector end
-			if UIS:IsKeyDown(Enum.KeyCode.S) then dir -= Camera.CFrame.LookVector end
-			if UIS:IsKeyDown(Enum.KeyCode.A) then dir -= Camera.CFrame.RightVector end
-			if UIS:IsKeyDown(Enum.KeyCode.D) then dir += Camera.CFrame.RightVector end
-			if UIS:IsKeyDown(Enum.KeyCode.Space) then dir += Vector3.new(0,1,0) end
-			if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then dir -= Vector3.new(0,1,0) end
-			if up then dir += Vector3.new(0,1,0) end
-			if down then dir -= Vector3.new(0,1,0) end
-			bv.Velocity = dir * speed
-			bg.CFrame = Camera.CFrame
-		end
+	fly = true
+	flyBV = Instance.new("BodyVelocity", root)
+	flyBV.MaxForce = Vector3.new(1e5,1e5,1e5)
+	flyBG = Instance.new("BodyGyro", root)
+	flyBG.MaxTorque = Vector3.new(1e5,1e5,1e5)
+
+	RunService.RenderStepped:Connect(function()
+		if not fly then return end
+		local dir = Vector3.zero
+		if UIS:IsKeyDown(Enum.KeyCode.W) then dir += workspace.CurrentCamera.CFrame.LookVector end
+		if UIS:IsKeyDown(Enum.KeyCode.S) then dir -= workspace.CurrentCamera.CFrame.LookVector end
+		if UIS:IsKeyDown(Enum.KeyCode.Space) then dir += Vector3.new(0,1,0) end
+		if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then dir -= Vector3.new(0,1,0) end
+		flyBV.Velocity = dir * 60
+		flyBG.CFrame = workspace.CurrentCamera.CFrame
 	end)
 end
 
 local function stopFly()
-	if bv then bv:Destroy() bv=nil end
-	if bg then bg:Destroy() bg=nil end
-	if flyConnection then flyConnection:Disconnect() flyConnection=nil end
+	fly = false
+	if flyBV then flyBV:Destroy() end
+	if flyBG then flyBG:Destroy() end
 end
 
+FlyBtn.MouseButton1Click:Connect(function()
+	if fly then stopFly() else startFly() end
+end)
+
+--------------------
 -- NOCLIP
-if noclipConnection then noclipConnection:Disconnect() end
-noclipConnection = RunService.Stepped:Connect(function()
-	if noclip then
-		local char = getChar()
-		for _,v in pairs(char:GetDescendants()) do
-			if v:IsA("BasePart") then v.CanCollide = false end
+--------------------
+local NoclipBtn = createButton("Noclip ON / OFF", 160)
+
+RunService.Stepped:Connect(function()
+	if noclip and character then
+		for _,v in pairs(character:GetDescendants()) do
+			if v:IsA("BasePart") then
+				v.CanCollide = false
+			end
 		end
 	end
 end)
 
--- Eventos botones
-flyBtn.MouseButton1Click:Connect(function()
-	flying = not flying
-	flyBtn.Text = flying and "🪽 FLY : ON" or "🪽 FLY : OFF"
-	if flying then startFly() else stopFly() end
-end)
-
-noclipBtn.MouseButton1Click:Connect(function()
+NoclipBtn.MouseButton1Click:Connect(function()
 	noclip = not noclip
-	noclipBtn.Text = noclip and "🧱 NOCLIP : ON" or "🧱 NOCLIP : OFF"
 end)
 
-upBtn.MouseButton1Down:Connect(function() up=true end)
-upBtn.MouseButton1Up:Connect(function() up=false end)
-downBtn.MouseButton1Down:Connect(function() down=true end)
-downBtn.MouseButton1Up:Connect(function() down=false end)
-
-speedUpBtn.MouseButton1Click:Connect(function() speed +=10 end)
-
-jumpBtn.MouseButton1Click:Connect(function()
-	local char = getChar()
-	if char:FindFirstChild("Humanoid") then
-		char.Humanoid.JumpPower = jumpBoost
+--------------------
+-- AURA ESPADA
+--------------------
+local AuraBtn = createButton("Aura Espada", 210)
+AuraBtn.MouseButton1Click:Connect(function()
+	for _,tool in pairs(character:GetChildren()) do
+		if tool:IsA("Tool") and tool:FindFirstChild("Handle") then
+			if tool.Handle:FindFirstChild("Aura") then return end
+			local p = Instance.new("ParticleEmitter", tool.Handle)
+			p.Name = "Aura"
+			p.Texture = "rbxassetid://243660364"
+			p.Color = ColorSequence.new(Color3.fromRGB(255,120,200))
+			p.Rate = 40
+			p.Lifetime = NumberRange.new(0.5)
+			p.Size = NumberSequence.new(0.6)
+		end
 	end
 end)
 
-print("Alkapone Universal V2 cargado correctamente ✅")
+--------------------
+-- KEY CHECK
+--------------------
+KeyBtn.MouseButton1Click:Connect(function()
+	if KeyBox.Text == REQUIRED_KEY then
+		KeyGui:Destroy()
+		HubGui.Enabled = true
+	end
+end)
