@@ -5,7 +5,7 @@
 --------------------
 -- CONFIG
 --------------------
-local REQUIRED_KEY = "ZL-V3-ACCESS"
+local REQUIRED_KEY = "victoriateamo"
 
 --------------------
 -- SERVICES
