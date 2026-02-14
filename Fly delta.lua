@@ -245,5 +245,104 @@ KeyBtn.MouseButton1Click:Connect(function()
 	if KeyBox.Text == REQUIRED_KEY then
 		KeyGui:Destroy()
 		HubGui.Enabled = true
+
+			--------------------
+-- PRISON LIFE ESP BOX (ROLES)
+--------------------
+local espPL = false
+local ESPPLBtn = createButton("Prison Life ESP (Roles)", 410)
+
+local function getRole(plr)
+	if not plr.Team then return "Unknown" end
+	local name = plr.Team.Name:lower()
+	if name:find("police") then
+		return "Police", Color3.fromRGB(80,150,255)
+	elseif name:find("criminal") then
+		return "Criminal", Color3.fromRGB(255,80,80)
+	else
+		return "Prisoner", Color3.fromRGB(80,255,120)
 	end
+end
+
+local function clearPLBoxes()
+	for _,plr in pairs(Players:GetPlayers()) do
+		if plr.Character then
+			local h = plr.Character:FindFirstChild("HumanoidRootPart")
+			if h then
+				local box = h:FindFirstChild("ZL_PL_BOX")
+				if box then box:Destroy() end
+			end
+		end
+	end
+end
+
+local function applyPLBoxes()
+	for _,plr in pairs(Players:GetPlayers()) do
+		if plr ~= player and plr.Character then
+			local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+			local hum = plr.Character:FindFirstChild("Humanoid")
+			if hrp and hum and not hrp:FindFirstChild("ZL_PL_BOX") then
+				local role, color = getRole(plr)
+
+				local box = Instance.new("BoxHandleAdornment")
+				box.Name = "ZL_PL_BOX"
+				box.Adornee = hrp
+				box.Size = Vector3.new(4,6,2)
+				box.AlwaysOnTop = true
+				box.ZIndex = 5
+				box.Transparency = 0.5
+				box.Color3 = color
+				box.Parent = hrp
+			end
+		end
+	end
+end
+
+ESPPLBtn.MouseButton1Click:Connect(function()
+	espPL = not espPL
+	clearPLBoxes()
+	if espPL then
+		applyPLBoxes()
+	end
+end)
+
+Players.PlayerAdded:Connect(function()
+	task.wait(1)
+	if espPL then applyPLBoxes() end
+end)
+	end
+		--------------------
+-- GOD MODE
+--------------------
+local godMode = false
+local GodBtn = createButton("God Mode ON / OFF", 460)
+
+local function applyGod()
+	if humanoid then
+		humanoid.MaxHealth = math.huge
+		humanoid.Health = math.huge
+	end
+end
+
+GodBtn.MouseButton1Click:Connect(function()
+	godMode = not godMode
+	if godMode then
+		applyGod()
+	else
+		if humanoid then
+			humanoid.MaxHealth = 100
+			humanoid.Health = 100
+		end
+	end
+end)
+
+-- mantener god al respawn
+player.CharacterAdded:Connect(function(char)
+	task.wait(1)
+	humanoid = char:WaitForChild("Humanoid")
+	root = char:WaitForChild("HumanoidRootPart")
+	if godMode then
+		applyGod()
+	end
+end)
 end)
