@@ -1,7 +1,6 @@
-
---// ZL HUB V4 | Universal
---// FULL FEATURES | Stable | Optimized
+--// ZL HUB V4 | Prison Life Edition
 --// Key: victoriateamo
+--// Full | Stable | Optimized
 
 --------------------
 -- CONFIG
@@ -20,12 +19,10 @@ local player = Players.LocalPlayer
 -- VARIABLES
 --------------------
 local character, humanoid, root
-local fly = false
-local noclip = false
-local speedOn = false
-local infJump = false
-local espEnabled = false
+local fly, noclip, speedOn, infJump = false,false,false,false
+local espPL, godMode = false,false
 local flyBV, flyBG
+local connections = {}
 
 --------------------
 -- CHARACTER LOAD
@@ -39,7 +36,16 @@ loadChar()
 player.CharacterAdded:Connect(loadChar)
 
 --------------------
--- KEY SYSTEM UI
+-- CLEAN CONNECTIONS (ANTI LAG)
+--------------------
+local function connect(sig, func)
+	local c = sig:Connect(func)
+	table.insert(connections, c)
+	return c
+end
+
+--------------------
+-- KEY SYSTEM
 --------------------
 local KeyGui = Instance.new("ScreenGui", game.CoreGui)
 local KeyFrame = Instance.new("Frame", KeyGui)
@@ -64,8 +70,6 @@ KeyBox.Size = UDim2.new(0.85,0,0,35)
 KeyBox.Position = UDim2.new(0.075,0,0.4,0)
 KeyBox.BackgroundColor3 = Color3.fromRGB(40,40,60)
 KeyBox.TextColor3 = Color3.new(1,1,1)
-KeyBox.Font = Enum.Font.Gotham
-KeyBox.TextSize = 14
 Instance.new("UICorner", KeyBox)
 
 local KeyBtn = Instance.new("TextButton", KeyFrame)
@@ -74,18 +78,17 @@ KeyBtn.Size = UDim2.new(0.5,0,0,35)
 KeyBtn.Position = UDim2.new(0.25,0,0.7,0)
 KeyBtn.BackgroundColor3 = Color3.fromRGB(255,120,200)
 KeyBtn.TextColor3 = Color3.new(0,0,0)
-KeyBtn.Font = Enum.Font.GothamBold
 Instance.new("UICorner", KeyBtn)
 
 --------------------
--- MAIN HUB UI
+-- MAIN UI
 --------------------
 local HubGui = Instance.new("ScreenGui", game.CoreGui)
 HubGui.Enabled = false
 
 local Main = Instance.new("Frame", HubGui)
-Main.Size = UDim2.new(0,380,0,420)
-Main.Position = UDim2.new(0.5,-190,0.5,-210)
+Main.Size = UDim2.new(0,400,0,560)
+Main.Position = UDim2.new(0.5,-200,0.5,-280)
 Main.BackgroundColor3 = Color3.fromRGB(30,30,45)
 Main.Active = true
 Main.Draggable = true
@@ -111,17 +114,16 @@ ToggleBtn.TextColor3 = Color3.new(0,0,0)
 ToggleBtn.Active = true
 ToggleBtn.Draggable = true
 Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(1,0)
-
 ToggleBtn.MouseButton1Click:Connect(function()
 	Main.Visible = not Main.Visible
 end)
 
 --------------------
--- BUTTON CREATOR
+-- BUTTON MAKER
 --------------------
 local function btn(text,y)
 	local b = Instance.new("TextButton", Main)
-	b.Size = UDim2.new(0.85,0,0,40)
+	b.Size = UDim2.new(0.85,0,0,38)
 	b.Position = UDim2.new(0.075,0,0,y)
 	b.Text = text
 	b.Font = Enum.Font.GothamBold
@@ -132,35 +134,32 @@ local function btn(text,y)
 end
 
 --------------------
--- SPEED
+-- SPEED / JUMP
 --------------------
-btn("Speed ON / OFF", 60).MouseButton1Click:Connect(function()
+btn("Speed ON / OFF",60).MouseButton1Click:Connect(function()
 	speedOn = not speedOn
 	humanoid.WalkSpeed = speedOn and 40 or 16
 end)
 
---------------------
--- JUMP
---------------------
-btn("Jump Boost", 110).MouseButton1Click:Connect(function()
+btn("Jump Boost",100).MouseButton1Click:Connect(function()
 	humanoid.JumpPower = humanoid.JumpPower == 50 and 100 or 50
 end)
 
 --------------------
 -- INFINITE JUMP
 --------------------
-btn("Infinite Jump", 160).MouseButton1Click:Connect(function()
+btn("Infinite Jump",140).MouseButton1Click:Connect(function()
 	infJump = not infJump
 end)
 
-UIS.JumpRequest:Connect(function()
+connect(UIS.JumpRequest,function()
 	if infJump then humanoid:ChangeState("Jumping") end
 end)
 
 --------------------
 -- FLY REAL
 --------------------
-btn("Fly ON / OFF", 210).MouseButton1Click:Connect(function()
+btn("Fly ON / OFF",180).MouseButton1Click:Connect(function()
 	fly = not fly
 	if fly then
 		flyBV = Instance.new("BodyVelocity", root)
@@ -168,7 +167,7 @@ btn("Fly ON / OFF", 210).MouseButton1Click:Connect(function()
 		flyBG = Instance.new("BodyGyro", root)
 		flyBG.MaxTorque = Vector3.new(1e9,1e9,1e9)
 
-		RunService.RenderStepped:Connect(function()
+		connect(RunService.RenderStepped,function()
 			if not fly then return end
 			local cam = workspace.CurrentCamera
 			local dir = Vector3.zero
@@ -188,13 +187,13 @@ btn("Fly ON / OFF", 210).MouseButton1Click:Connect(function()
 end)
 
 --------------------
--- NOCLIP REAL
+-- NOCLIP
 --------------------
-btn("Noclip ON / OFF", 260).MouseButton1Click:Connect(function()
+btn("Noclip ON / OFF",220).MouseButton1Click:Connect(function()
 	noclip = not noclip
 end)
 
-RunService.Stepped:Connect(function()
+connect(RunService.Stepped,function()
 	if noclip and character then
 		for _,v in pairs(character:GetDescendants()) do
 			if v:IsA("BasePart") then v.CanCollide = false end
@@ -203,38 +202,83 @@ RunService.Stepped:Connect(function()
 end)
 
 --------------------
--- ESP SIMPLE
+-- ESP BOX PRISON LIFE (ROLES)
 --------------------
-btn("ESP ON / OFF", 310).MouseButton1Click:Connect(function()
-	espEnabled = not espEnabled
+btn("ESP BOX (Police/Criminal)",260).MouseButton1Click:Connect(function()
+	espPL = not espPL
 	for _,plr in pairs(Players:GetPlayers()) do
-		if plr ~= player and plr.Character and plr.Character:FindFirstChild("Head") then
-			local h = plr.Character.Head
-			local e = h:FindFirstChild("ZLESP")
-			if e then e:Destroy() end
-			if espEnabled then
-				local g = Instance.new("BillboardGui", h)
-				g.Name = "ZLESP"
-				g.Size = UDim2.new(0,120,0,30)
-				g.AlwaysOnTop = true
-				local t = Instance.new("TextLabel", g)
-				t.Size = UDim2.new(1,0,1,0)
-				t.BackgroundTransparency = 1
-				t.Text = plr.Name
-				t.TextColor3 = Color3.fromRGB(255,120,200)
-				t.TextStrokeTransparency = 0
+		if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+			local hrp = plr.Character.HumanoidRootPart
+			local old = hrp:FindFirstChild("ZL_BOX")
+			if old then old:Destroy() end
+			if espPL and plr ~= player then
+				local color = Color3.fromRGB(80,255,120)
+				if plr.Team and plr.Team.Name:lower():find("police") then
+					color = Color3.fromRGB(80,150,255)
+				elseif plr.Team and plr.Team.Name:lower():find("criminal") then
+					color = Color3.fromRGB(255,80,80)
+				end
+				local box = Instance.new("BoxHandleAdornment", hrp)
+				box.Name = "ZL_BOX"
+				box.Adornee = hrp
+				box.Size = Vector3.new(4,6,2)
+				box.AlwaysOnTop = true
+				box.Transparency = 0.5
+				box.Color3 = color
 			end
 		end
 	end
 end)
 
 --------------------
--- TP TOOL
+-- TP AL MOUSE
 --------------------
-btn("TP Tool", 360).MouseButton1Click:Connect(function()
+btn("TP Mouse",300).MouseButton1Click:Connect(function()
 	local m = player:GetMouse()
 	if m and m.Hit then
 		root.CFrame = m.Hit + Vector3.new(0,3,0)
+	end
+end)
+
+--------------------
+-- TP A JUGADOR (MAS CERCANO)
+--------------------
+btn("TP Player (Closest)",340).MouseButton1Click:Connect(function()
+	local closest,dist
+	for _,plr in pairs(Players:GetPlayers()) do
+		if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+			local d = (root.Position - plr.Character.HumanoidRootPart.Position).Magnitude
+			if not dist or d < dist then
+				dist = d
+				closest = plr
+			end
+		end
+	end
+	if closest then
+		root.CFrame = closest.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,3)
+	end
+end)
+
+--------------------
+-- GOD MODE (ANTI DAMAGE)
+--------------------
+btn("God Mode ON / OFF",380).MouseButton1Click:Connect(function()
+	godMode = not godMode
+	if godMode then
+		humanoid.MaxHealth = math.huge
+		humanoid.Health = math.huge
+	else
+		humanoid.MaxHealth = 100
+		humanoid.Health = 100
+	end
+end)
+
+--------------------
+-- PRISON LIFE AUTO ESCAPE
+--------------------
+btn("Auto Escape Prison",420).MouseButton1Click:Connect(function()
+	if workspace:FindFirstChild("Criminals Spawn") then
+		root.CFrame = workspace["Criminals Spawn"].CFrame + Vector3.new(0,5,0)
 	end
 end)
 
@@ -245,104 +289,5 @@ KeyBtn.MouseButton1Click:Connect(function()
 	if KeyBox.Text == REQUIRED_KEY then
 		KeyGui:Destroy()
 		HubGui.Enabled = true
-
-			--------------------
--- PRISON LIFE ESP BOX (ROLES)
---------------------
-local espPL = false
-local ESPPLBtn = createButton("Prison Life ESP (Roles)", 410)
-
-local function getRole(plr)
-	if not plr.Team then return "Unknown" end
-	local name = plr.Team.Name:lower()
-	if name:find("police") then
-		return "Police", Color3.fromRGB(80,150,255)
-	elseif name:find("criminal") then
-		return "Criminal", Color3.fromRGB(255,80,80)
-	else
-		return "Prisoner", Color3.fromRGB(80,255,120)
 	end
-end
-
-local function clearPLBoxes()
-	for _,plr in pairs(Players:GetPlayers()) do
-		if plr.Character then
-			local h = plr.Character:FindFirstChild("HumanoidRootPart")
-			if h then
-				local box = h:FindFirstChild("ZL_PL_BOX")
-				if box then box:Destroy() end
-			end
-		end
-	end
-end
-
-local function applyPLBoxes()
-	for _,plr in pairs(Players:GetPlayers()) do
-		if plr ~= player and plr.Character then
-			local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
-			local hum = plr.Character:FindFirstChild("Humanoid")
-			if hrp and hum and not hrp:FindFirstChild("ZL_PL_BOX") then
-				local role, color = getRole(plr)
-
-				local box = Instance.new("BoxHandleAdornment")
-				box.Name = "ZL_PL_BOX"
-				box.Adornee = hrp
-				box.Size = Vector3.new(4,6,2)
-				box.AlwaysOnTop = true
-				box.ZIndex = 5
-				box.Transparency = 0.5
-				box.Color3 = color
-				box.Parent = hrp
-			end
-		end
-	end
-end
-
-ESPPLBtn.MouseButton1Click:Connect(function()
-	espPL = not espPL
-	clearPLBoxes()
-	if espPL then
-		applyPLBoxes()
-	end
-end)
-
-Players.PlayerAdded:Connect(function()
-	task.wait(1)
-	if espPL then applyPLBoxes() end
-end)
-	end
-		--------------------
--- GOD MODE
---------------------
-local godMode = false
-local GodBtn = createButton("God Mode ON / OFF", 460)
-
-local function applyGod()
-	if humanoid then
-		humanoid.MaxHealth = math.huge
-		humanoid.Health = math.huge
-	end
-end
-
-GodBtn.MouseButton1Click:Connect(function()
-	godMode = not godMode
-	if godMode then
-		applyGod()
-	else
-		if humanoid then
-			humanoid.MaxHealth = 100
-			humanoid.Health = 100
-		end
-	end
-end)
-
--- mantener god al respawn
-player.CharacterAdded:Connect(function(char)
-	task.wait(1)
-	humanoid = char:WaitForChild("Humanoid")
-	root = char:WaitForChild("HumanoidRootPart")
-	if godMode then
-		applyGod()
-	end
-end)
 end)
