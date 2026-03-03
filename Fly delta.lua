@@ -103,3 +103,28 @@ Instance.new("UICorner", Toggle).CornerRadius = UDim.new(1,0)
 Toggle.MouseButton1Click:Connect(function()
 	Main.Visible = not Main.Visible
 end)
+local Players = game:GetService("Players")
+local ProximityPromptService = game:GetService("ProximityPromptService")
+
+local player = Players.LocalPlayer
+
+local pos1 = Vector3.new(-359, -7, 89)
+local pos2 = Vector3.new(-370, -7, 36)
+
+ProximityPromptService.PromptHoldEnded:Connect(function(prompt, plr)
+    if plr ~= player then return end
+
+    local character = player.Character or player.CharacterAdded:Wait()
+    local root = character:WaitForChild("HumanoidRootPart")
+
+    local atual = root.Position
+
+    local d1 = (atual - pos1).Magnitude
+    local d2 = (atual - pos2).Magnitude
+
+    if d1 < d2 then
+        root.CFrame = CFrame.new(pos1)
+    else
+        root.CFrame = CFrame.new(pos2)
+    end
+end)
