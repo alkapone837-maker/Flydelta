@@ -1,132 +1,75 @@
---========================================
---        RIDER SPAMMER HUB
---========================================
+--// RAIDER Hub | Clean UI Only
+--// Solo menú, sin opciones
 
 local Players = game:GetService("Players")
-local ProximityPromptService = game:GetService("ProximityPromptService")
-local UserInputService = game:GetService("UserInputService")
-
 local player = Players.LocalPlayer
 
--- POSICIONES SEMI-TP (NO TOCADAS)
-local pos1 = Vector3.new(-359, -7, 89)
-local pos2 = Vector3.new(-370, -7, 36)
+-- GUI principal
+local Gui = Instance.new("ScreenGui")
+Gui.Name = "RaiderHub"
+Gui.ResetOnSpawn = false
+Gui.Parent = game.CoreGui
 
--- ESTADO
-local menuOpen = true
-local semiTPEnabled = false
-local minuteDouble = true
+-- Frame principal
+local Main = Instance.new("Frame")
+Main.Parent = Gui
+Main.Size = UDim2.new(0, 360, 0, 180)
+Main.Position = UDim2.new(0.5, -180, 0.5, -90)
+Main.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Main.BorderSizePixel = 0
+Main.Visible = true
+Main.Active = true
+Main.Draggable = true
 
---========================================
---                GUI
---========================================
+-- Bordes redondeados
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 18)
+Corner.Parent = Main
 
-local gui = Instance.new("ScreenGui")
-gui.Name = "RiderSpammerGUI"
-gui.Parent = game:GetService("CoreGui")
-gui.ResetOnSpawn = false
+-- Título
+local Title = Instance.new("TextLabel")
+Title.Parent = Main
+Title.Size = UDim2.new(1, -20, 0, 60)
+Title.Position = UDim2.new(0, 10, 0, 10)
+Title.BackgroundTransparency = 1
+Title.Text = "RAIDER"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 28
+Title.TextXAlignment = Enum.TextXAlignment.Center
+Title.TextYAlignment = Enum.TextYAlignment.Center
 
--- Toggle button
-local toggleBtn = Instance.new("TextButton")
-toggleBtn.Size = UDim2.new(0, 120, 0, 35)
-toggleBtn.Position = UDim2.new(0, 20, 0.5, -18)
-toggleBtn.Text = "RIDER"
-toggleBtn.BackgroundColor3 = Color3.fromRGB(0,0,0)
-toggleBtn.TextColor3 = Color3.fromRGB(255,255,255)
-toggleBtn.BorderSizePixel = 0
-toggleBtn.Parent = gui
+-- Subtexto minimal
+local Sub = Instance.new("TextLabel")
+Sub.Parent = Main
+Sub.Size = UDim2.new(1, -20, 0, 40)
+Sub.Position = UDim2.new(0, 10, 0, 80)
+Sub.BackgroundTransparency = 1
+Sub.Text = "minimal • clean • black"
+Sub.TextColor3 = Color3.fromRGB(160, 160, 160)
+Sub.Font = Enum.Font.Gotham
+Sub.TextSize = 14
+Sub.TextXAlignment = Enum.TextXAlignment.Center
 
--- Main frame
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 320, 0, 230)
-frame.Position = UDim2.new(0.5, -160, 0.5, -115)
-frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
-frame.BorderSizePixel = 0
-frame.Parent = gui
+-- Botón Toggle flotante
+local Toggle = Instance.new("TextButton")
+Toggle.Parent = Gui
+Toggle.Size = UDim2.new(0, 52, 0, 52)
+Toggle.Position = UDim2.new(0.05, 0, 0.5, 0)
+Toggle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Toggle.BorderSizePixel = 0
+Toggle.Text = "R"
+Toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+Toggle.Font = Enum.Font.GothamBold
+Toggle.TextSize = 20
+Toggle.Active = true
+Toggle.Draggable = true
 
--- Title
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 45)
-title.BackgroundTransparency = 1
-title.Text = "Rider Spammer"
-title.Font = Enum.Font.GothamBold
-title.TextSize = 22
-title.TextColor3 = Color3.fromRGB(255,255,255)
-title.Parent = frame
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(1, 0)
+ToggleCorner.Parent = Toggle
 
--- Divider
-local line = Instance.new("Frame")
-line.Size = UDim2.new(1, -20, 0, 1)
-line.Position = UDim2.new(0, 10, 0, 45)
-line.BackgroundColor3 = Color3.fromRGB(40,40,40)
-line.BorderSizePixel = 0
-line.Parent = frame
-
--- Semi-TP Button
-local tpBtn = Instance.new("TextButton")
-tpBtn.Size = UDim2.new(1, -40, 0, 45)
-tpBtn.Position = UDim2.new(0, 20, 0, 70)
-tpBtn.Text = "Semi-TP : OFF"
-tpBtn.BackgroundColor3 = Color3.fromRGB(15,15,15)
-tpBtn.TextColor3 = Color3.fromRGB(255,255,255)
-tpBtn.Font = Enum.Font.Gotham
-tpBtn.TextSize = 16
-tpBtn.BorderSizePixel = 0
-tpBtn.Parent = frame
-
--- Minute Double label
-local minuteLabel = Instance.new("TextLabel")
-minuteLabel.Size = UDim2.new(1, -40, 0, 40)
-minuteLabel.Position = UDim2.new(0, 20, 0, 135)
-minuteLabel.BackgroundTransparency = 1
-minuteLabel.Text = "Minute Double : ON"
-minuteLabel.Font = Enum.Font.Gotham
-minuteLabel.TextSize = 14
-minuteLabel.TextColor3 = Color3.fromRGB(200,200,200)
-minuteLabel.Parent = frame
-
---========================================
---           INTERACCIONES
---========================================
-
-toggleBtn.MouseButton1Click:Connect(function()
-	menuOpen = not menuOpen
-	frame.Visible = menuOpen
-end)
-
-tpBtn.MouseButton1Click:Connect(function()
-	semiTPEnabled = not semiTPEnabled
-	tpBtn.Text = semiTPEnabled and "Semi-TP : ON" or "Semi-TP : OFF"
-end)
-
---========================================
---        SEMI-TP (SIN CAMBIOS)
---========================================
-
-ProximityPromptService.PromptHoldEnded:Connect(function(prompt, plr)
-	if not semiTPEnabled then return end
-	if plr ~= player then return end
-
-	local character = player.Character or player.CharacterAdded:Wait()
-	local root = character:WaitForChild("HumanoidRootPart")
-
-	local atual = root.Position
-	local d1 = (atual - pos1).Magnitude
-	local d2 = (atual - pos2).Magnitude
-
-	if d1 < d2 then
-		root.CFrame = CFrame.new(pos1)
-	else
-		root.CFrame = CFrame.new(pos2)
-	end
-end)
-
---========================================
---            MINUTE DOUBLE
---========================================
-
-task.spawn(function()
-	while minuteDouble do
-		task.wait(60)
-	end
+-- Función abrir / cerrar menú
+Toggle.MouseButton1Click:Connect(function()
+	Main.Visible = not Main.Visible
 end)
